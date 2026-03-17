@@ -94,6 +94,8 @@ std::string Response::handleCgi(const Request& request, const ServerConfig& serv
     } catch (...) {
         return errorResponse(500, "CGI execution failed");
     }
+    if (raw.compare(0, 5, "HTTP/") == 0)
+        return raw;
     std::string headers_part, body_part;
     separateHeadersBody(raw, headers_part, body_part);
     parseHeaderLines(headers_part);

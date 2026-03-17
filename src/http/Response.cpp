@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gabrsouz <gabrsouz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kmaeda <kmaeda@student.42berlin.de>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 12:57:41 by kmaeda            #+#    #+#             */
-/*   Updated: 2026/02/19 12:00:00 by gabrsouz         ###   ########.fr       */
+/*   Updated: 2026/03/17 15:18:36 by kmaeda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,9 @@ std::string Response::buildHttpResponse(){
             break;
         case 505:
             response += "HTTP/1.1 505 HTTP Version Not Supported\r\n";
+            break;
+        case 504:
+            response += "HTTP/1.1 504 Gateway Timeout\r\n";
             break;
         default:
             response += "HTTP/1.1 500 Internal Server Error\r\n";

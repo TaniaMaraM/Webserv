@@ -6,7 +6,7 @@
 /*   By: kmaeda <kmaeda@student.42berlin.de>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 14:40:38 by kmaeda            #+#    #+#             */
-/*   Updated: 2026/02/13 14:59:21 by kmaeda           ###   ########.fr       */
+/*   Updated: 2026/03/17 15:06:30 by kmaeda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <map>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 class Request;
 class ServerConfig;

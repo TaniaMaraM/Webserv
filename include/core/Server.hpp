@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gabrsouz <gabrsouz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kmaeda <kmaeda@student.42berlin.de>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 12:56:57 by kmaeda            #+#    #+#             */
-/*   Updated: 2026/02/12 12:47:49 by gabrsouz         ###   ########.fr       */
+/*   Updated: 2026/02/19 11:21:36 by kmaeda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Server {
 
 	public:
 		Server(int port, ServerConfig* cfg);
+		~Server();
 		
 		void setupListenSocket();
 		void createPollFds(std::vector<struct pollfd>& pollFds, struct pollfd pfd);
