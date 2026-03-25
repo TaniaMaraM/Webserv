@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gabrsouz <gabrsouz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kmaeda <kmaeda@student.42berlin.de>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 12:57:49 by kmaeda            #+#    #+#             */
-/*   Updated: 2026/02/12 12:38:43 by gabrsouz         ###   ########.fr       */
+/*   Updated: 2026/02/19 11:19:45 by kmaeda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,4 +32,18 @@ int Server::getPort() const {
 
 ServerConfig* Server::getConfig() {
 	return config;
+}
+
+Server::~Server() {
+	// Close listening socket if open
+	if (listenFd != -1) {
+		close(listenFd);
+		listenFd = -1;
+	}
+	// Close all client sockets
+	for (std::map<int, Client>::iterator it = clients.begin(); it != clients.end(); ++it) {
+		int cfd = it->first;
+		close(cfd);
+	}
+	clients.clear();
 }

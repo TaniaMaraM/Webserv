@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CGI.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gabrsouz <gabrsouz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: kmaeda <kmaeda@student.42berlin.de>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/02 14:40:53 by kmaeda            #+#    #+#             */
-/*   Updated: 2026/02/19 14:22:58 by gabrsouz         ###   ########.fr       */
+/*   Updated: 2026/03/17 15:15:08 by kmaeda           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,15 @@
 CGI::CGI() {}
 
 CGI::~CGI() {}
+
+static volatile sig_atomic_t g_cgiTimedOut = 0;
+static volatile sig_atomic_t g_cgiPid = -1;
+
+static void cgiAlarmHandler(int) {
+	g_cgiTimedOut = 1;
+	if (g_cgiPid > 0)
+		kill(g_cgiPid, SIGKILL);
+}
 
 std::string CGI::getQuery(const std::string& path) {
     size_t pos = path.find('?');
@@ -114,6 +123,7 @@ std::string CGI::execute(const Request& req, const ServerConfig& server, const s
 	int pipeIn[2], pipeOut[2];
 	int status = 0;
 	Response response;
+	const unsigned int cgiTimeoutSec = 2;
 	if (pipe(pipeIn) == -1 || pipe(pipeOut) == -1)
 	 	return (response.errorResponse(500, "CGI: pipe() failed"));
 
@@ -142,6 +152,17 @@ std::string CGI::execute(const Request& req, const ServerConfig& server, const s
 	}
 	close(pipeIn[0]);
 	close(pipeOut[1]);
+
+	struct sigaction oldAct;
+	struct sigaction act;
+	std::memset(&act, 0, sizeof(act));
+	act.sa_handler = cgiAlarmHandler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGALRM, &act, &oldAct);
+	g_cgiTimedOut = 0;
+	g_cgiPid = pid;
+	alarm(cgiTimeoutSec);
 	// Write request body to CGI stdin with error checking
 	ssize_t bodySize = static_cast<ssize_t>(req.getBody().length());
 	if (bodySize > 0) {
@@ -161,17 +182,18 @@ std::string CGI::execute(const Request& req, const ServerConfig& server, const s
 	ssize_t bytesRead;
 	while ((bytesRead = read(pipeOut[0], buffer, sizeof(buffer))) > 0)
 		output.append(buffer, bytesRead);
-	// Check for read error
-	if (bytesRead < 0) {
-		close(pipeOut[0]);
-		waitpid(pid, &status, 0);
-		freeEnvArray(envp);
-		return (response.errorResponse(500, "CGI: failed to read script output"));
-	}
+	bool readError = (bytesRead < 0);
 	close(pipeOut[0]);
+	alarm(0);
+	sigaction(SIGALRM, &oldAct, NULL);
+	g_cgiPid = -1;
 
 	waitpid(pid, &status, 0);
 	freeEnvArray(envp);
+	if (g_cgiTimedOut)
+		return (response.errorResponse(504, "CGI: timeout"));
+	if (readError)
+		return (response.errorResponse(500, "CGI: failed to read script output"));
 	if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
 		return (response.errorResponse(500, "CGI: script failed to execute properly"));
 	if (WIFSIGNALED(status))

@@ -9,4 +9,4 @@ print("<h1>Starting infinite loop...</h1>")
 
 # Infinite loop - server should timeout
 while True:
-    time.sleep(1)
+    pass
